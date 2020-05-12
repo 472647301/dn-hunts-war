@@ -1,0 +1,30 @@
+{
+  "name": "dn-hunts-war",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "./node_modules/.bin/tsc -W",
+    "build": "./node_modules/.bin/tsc",
+    "start": "yarn build && npx electron ./dist/main.js "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/472647301/dn-hunts-war.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/472647301/dn-hunts-war/issues"
+  },
+  "homepage": "https://github.com/472647301/dn-hunts-war#readme",
+  "devDependencies": {
+    "electron": "^8.2.5",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "moment": "^2.25.3"
+  }
+}

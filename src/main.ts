@@ -1,15 +1,23 @@
 import * as path from "path";
 import { app, BrowserWindow, ipcMain } from "electron";
 import { RobotHunt, OptionsT, ItemT } from "./robot_hunt";
+import { shell } from "electron";
 
 const robotHunt = new RobotHunt();
 let mainWindow: Electron.BrowserWindow | null;
 app.allowRendererProcessReuse = true;
 
+const W = 700;
+const H = 600;
+
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 300,
+    width: W,
+    height: H,
+    minWidth: W,
+    minHeight: H,
+    maxWidth: W,
+    maxHeight: H,
     title: "狩猎大战辅助工具",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -17,6 +25,8 @@ function createWindow() {
   });
 
   mainWindow.loadURL("http://localhost:3000/");
+
+  mainWindow.webContents.openDevTools();
 
   mainWindow.webContents.on("did-finish-load", () => {
     const list: Array<ItemT> = [
@@ -60,4 +70,8 @@ ipcMain.on("hunt-start", (event, options: OptionsT) => {
 
 ipcMain.on("hunt-end", (event) => {
   robotHunt.stop();
+});
+
+ipcMain.on("open-url", (event, url) => {
+  shell.openExternal(url);
 });

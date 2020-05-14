@@ -1,8 +1,10 @@
 import moment from "moment";
 
 export class RobotHunt {
-  public send?: (str: string) => void;
+  public send?: (channel: string, ...args: any[]) => void;
   public options: Partial<OptionsT> = {};
+  public timer: NodeJS.Timeout | null = null;
+  public runState = false;
   /**
    * 修改配置
    */
@@ -14,8 +16,21 @@ export class RobotHunt {
   /**
    * 开始
    */
-  public start() {
+  public start(options?: Partial<OptionsT>) {
+    if (options) {
+      this.changeOptions(options);
+    }
     this.debug(`狩猎大战机器人开始工作`);
+    this.runState = true;
+    if (this.send) {
+      this.send("hunt-start");
+    }
+    this.timer = setInterval(() => {
+      if (!this.timer) {
+        return;
+      }
+      this.debug(Date.now().toString());
+    }, 2000);
   }
 
   /**
@@ -23,6 +38,14 @@ export class RobotHunt {
    */
   public stop() {
     this.debug(`狩猎大战机器人停止工作`);
+    this.runState = false;
+    if (this.send) {
+      this.send("hunt-stop");
+    }
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
   }
 
   public debug(logs: string) {
@@ -31,8 +54,12 @@ export class RobotHunt {
     const text = `${now} >> ${logs}`;
     console.log(text);
     if (this.send) {
-      this.send(text);
+      this.send("hunt-logs", text);
     }
+  }
+
+  public fetchLocation() {
+    return { x: 1, y: 1 };
   }
 }
 

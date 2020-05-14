@@ -1,39 +1,22 @@
 import { ipcRenderer } from "electron";
 
-window.robotHunt = {
-  start: function (options) {
-    try {
-      const config = JSON.parse(options);
-      ipcRenderer.send("hunt-start", config);
-    } catch (err) {
-      alert("aaaa");
-    }
+window.NativeNotice = {
+  on: function (channel: string, callback: (...args: any[]) => void) {
+    ipcRenderer.on(channel, (event, ...args) => {
+      callback && callback(...args);
+    });
   },
-  end: function () {
-    ipcRenderer.send("hunt-end");
+  send: function (channel: string, ...args: any[]) {
+    ipcRenderer.send(channel, ...args);
   },
 };
 
-ipcRenderer.on("hunt-init", (event, list) => {
-  if (window.robotHunt.init) {
-    window.robotHunt.init(list);
-  }
-});
-
-ipcRenderer.on("hunt-logs", (event, text) => {
-  if (window.robotHunt.logs) {
-    window.robotHunt.logs(text);
-  }
-});
-
 declare global {
   interface Window {
-    robotHunt: IRobotHunt;
+    NativeNotice: INativeNotice;
   }
 }
-type IRobotHunt = {
-  readonly start: (optinos: string) => void;
-  readonly end: () => void;
-  logs?: (text: string) => void;
-  init?: (config: string) => void;
+type INativeNotice = {
+  on: (channel: string, callback: (...args: any[]) => void) => void;
+  send: (channel: string, ...args: any[]) => void;
 };

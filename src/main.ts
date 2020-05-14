@@ -1,14 +1,15 @@
 import * as path from "path";
 import { app, BrowserWindow, ipcMain } from "electron";
-import { RobotHunt, OptionsT, ItemT } from "./robot_hunt";
+import { globalShortcut, clipboard } from "electron";
+import { RobotHunt } from "./robot_hunt";
 import { shell } from "electron";
 
 const robotHunt = new RobotHunt();
 let mainWindow: Electron.BrowserWindow | null;
 app.allowRendererProcessReuse = true;
 
-const W = 700;
-const H = 600;
+const W = 750;
+const H = 625;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -26,23 +27,32 @@ function createWindow() {
 
   mainWindow.loadURL("http://localhost:3000/");
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
+  robotHunt.send = function (channel, ...args) {
+    mainWindow?.webContents.send(channel, ...args);
+  };
   mainWindow.webContents.on("did-finish-load", () => {
-    const list: Array<ItemT> = [
-      "DN_INSTALL_DIR",
-      "JJC_ICON_LOCATION",
-      "HUNT_MATCH_LOCATION",
-      "HUNT_START_LOCATION",
-      "HUNT_SURRENDDER_LOCATION",
-      "HUNT_STOP_LOCATION",
-    ];
+    const list: Array<string> = [];
     // 导航完成时触发
     mainWindow?.webContents.send("hunt-init", list);
   });
 
   mainWindow.on("closed", () => {
     mainWindow = null;
+  });
+  // 注册启动/停止快捷键
+  globalShortcut.register("F7", () => {
+    if (robotHunt.runState) {
+      robotHunt.stop();
+    } else {
+      robotHunt.start();
+    }
+  });
+  // 注册获取坐标快捷键
+  globalShortcut.register("F8", () => {
+    const location = robotHunt.fetchLocation();
+    clipboard.writeText(JSON.stringify(location));
   });
 }
 
@@ -60,15 +70,11 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.on("hunt-start", (event, options: OptionsT) => {
-  robotHunt.send = (text) => {
-    mainWindow?.webContents.send("hunt-logs", text);
-  };
-  robotHunt.changeOptions(options);
-  robotHunt.start();
+ipcMain.on("hunt-start", (event, options) => {
+  robotHunt.start(options);
 });
 
-ipcMain.on("hunt-end", (event) => {
+ipcMain.on("hunt-stop", (event) => {
   robotHunt.stop();
 });
 
